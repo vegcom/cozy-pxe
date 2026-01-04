@@ -1,0 +1,20 @@
+services:
+  dnsmasq:
+    build: ./app/dnsmasq
+    network_mode: host
+    volumes:
+      - ./app/dnsmasq/dhcpd.conf:/etc/dhcp/dhcpd.conf:ro
+      - ./app/mnt:/var/lib/tftpboot:ro
+    cap_add:
+      - NET_ADMIN
+    restart: unless-stopped
+
+  http:
+    build: ./app/http
+    network_mode: host
+    volumes:
+      - ./app/http/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./app/mnt:/usr/share/nginx/html:ro
+    cap_add:
+      - NET_ADMIN
+    restart: unless-stopped

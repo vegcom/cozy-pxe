@@ -1,0 +1,63 @@
+#!ipxe
+# Dynamic iPXE Menu
+# Serves bootable ISOs, IMG files, and WIM files over HTTP
+
+:start
+menu Dynamic PXE Boot Menu
+item --gap --
+item local Boot from local disk
+item --gap --
+
+<?php
+$files = [];
+$patterns = ['*.iso', '*.img', '*.img.bz2', '*.img.gz', '*.wim'];
+
+foreach ($patterns as $pattern) {
+    $files = array_merge($files, glob($pattern));
+}
+
+foreach ($files as $index => $file) {
+    $name = basename($file);
+    echo "item boot$index $name\n";
+}
+?>
+
+choose target && goto ${target}
+
+:local
+echo Booting from local disk...
+sanboot --no-describe --drive 0x80
+
+<?php
+$server_ip = $_SERVER['SERVER_ADDR'];
+foreach ($files as $index => $file) {
+    $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+    echo ":boot$index\n";
+    echo "echo Booting from $file...\n";
+
+    if ($ext === 'iso') {
+        // Try sanboot first for ISOs that support it, fallback to memdisk
+        echo "sanboot --no-describe http://$server_ip/$file || goto boot{$index}_memdisk\n";
+        echo "goto start\n";
+        echo ":boot{$index}_memdisk\n";
+        echo "echo Trying memdisk fallback...\n";
+        echo "kernel http://$server_ip/memdisk iso raw\n";
+        echo "initrd http://$server_ip/$file\n";
+    } elseif ($ext === 'bz2' || $ext === 'gz') {
+        // For compressed images, use memdisk
+        echo "kernel http://$server_ip/memdisk raw\n";
+        echo "initrd http://$server_ip/$file\n";
+    } elseif ($ext === 'img') {
+        echo "kernel http://$server_ip/memdisk raw\n";
+        echo "initrd http://$server_ip/$file\n";
+    } elseif ($ext === 'wim') {
+        // For Windows PE WIM files
+        echo "kernel wimboot\n";
+        echo "initrd http://$server_ip/bootmgr.exe bootmgr.exe\n";
+        echo "initrd http://$server_ip/bcd bcd\n";
+        echo "initrd http://$server_ip/$file $file\n";
+    }
+
+    echo "boot || goto start\n\n";
+}
+?>

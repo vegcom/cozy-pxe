@@ -1,0 +1,32 @@
+#!ipxe
+# iPXE boot script - Verbose mode
+# Chainload to dynamic menu
+
+:start
+echo ================================================
+echo iPXE Boot Starting...
+echo ================================================
+
+echo Configuring network via DHCP...
+dhcp || goto dhcp_failed
+
+echo DHCP successful!
+echo IP: ${net0/ip}
+echo Netmask: ${net0/netmask}
+echo Gateway: ${net0/gateway}
+echo DNS: ${net0/dns}
+echo Next server: ${next-server}
+
+echo
+echo Loading menu from http://${next-server}/menu.ipxe...
+chain http://${next-server}/menu.ipxe || goto chain_failed
+
+:dhcp_failed
+echo DHCP failed! Waiting 5 seconds...
+sleep 5
+goto start
+
+:chain_failed
+echo Failed to load menu! Waiting 5 seconds...
+sleep 5
+goto start

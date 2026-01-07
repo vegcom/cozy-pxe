@@ -7,6 +7,8 @@ menu Dynamic PXE Boot Menu
 item --gap --
 item local Boot from local disk
 item --gap --
+item foreman Foreman Provisioning
+item --gap --
 
 <?php
 $files = [];
@@ -27,6 +29,10 @@ choose target && goto ${target}
 :local
 echo Booting from local disk...
 sanboot --no-describe --drive 0x80
+
+:foreman
+echo Booting into Foreman provisioning...
+chain http://<?php echo $_SERVER['SERVER_ADDR']; ?>:3000/unattended/iPXE || goto start
 
 <?php
 $server_ip = $_SERVER['SERVER_ADDR'];

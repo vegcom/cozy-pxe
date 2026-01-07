@@ -1,0 +1,8 @@
+---
+# Foreman settings
+:unattended: true
+:require_ssl: false
+:support_jsonp: false
+:idle_timeout: 60
+:entries_per_page: 20
+:db_pending_seed: false

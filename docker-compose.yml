@@ -18,3 +18,31 @@ services:
     cap_add:
       - NET_ADMIN
     restart: unless-stopped
+  foreman:
+    build: ./app/foreman
+    ports:
+      - "3000:3000"
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=foreman
+      - DB_USER=foreman
+      - DB_PASSWORD=foreman
+    volumes:
+      - ./app/foreman/settings.yaml:/usr/share/foreman/config/settings.yaml
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: foreman
+      POSTGRES_PASSWORD: foreman
+      POSTGRES_DB: foreman
+    volumes:
+      - foreman_db:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  foreman_db:

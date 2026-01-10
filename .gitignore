@@ -1,0 +1,7 @@
+# Ignore large boot files (ISOs, disk images, etc.)
+app/mnt/*.iso
+app/mnt/*.img
+app/mnt/*.img.bz2
+app/mnt/*.img.gz
+app/mnt/*.wim
+app/mnt/*.squashfs
